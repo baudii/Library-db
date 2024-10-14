@@ -1,0 +1,45 @@
+﻿@using Microsoft.AspNetCore.Components;
+@using System.Reflection;
+@using System.Text.RegularExpressions;
+
+@model List<BookModel>
+@{
+	ViewData["Title"] = "Book collection";
+}
+<h1>@ViewData["Title"]</h1>
+
+<table class="table">
+	<thead>
+		<tr>
+			@{
+				var properties = typeof(BookModel).GetProperties();
+				foreach (var prop in properties)
+				{
+					// Properties of a model should be written in camel case
+					var res = Regex.Replace(prop.Name, "(\\B[A-Z])", " $1");
+					<th>
+						@res
+					</th>
+				}
+			}
+		</tr>
+	</thead>
+	<tbody>
+			@foreach (var book in Model)
+			{
+				<tr>
+					@foreach (var prop in properties)
+					{
+						<td>
+							@prop.GetValue(book)
+						</td>
+					}
+						<td>
+							<a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-warning">Edit</a>
+							<a asp-action="Delete" asp-route-id="@book.Id" class="btn btn-danger">Delete</a>
+						</td>
+				</tr>
+			}
+	</tbody>
+</table>
+<a asp-action="Create" class="btn btn-primary">Add New Book</a>
