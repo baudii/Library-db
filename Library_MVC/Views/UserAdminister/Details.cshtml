@@ -1,0 +1,48 @@
+﻿@model Library_MVC.Models.UserModel
+
+@{
+	ViewData["Title"] = "Детали пользователя";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div>
+	<h4>Пользователь</h4>
+	<hr />
+	<dl class="row">
+		<dt class="col-sm-2">
+			Имя пользователя
+		</dt>
+		<dd class="col-sm-10">
+			@Model.UserName
+		</dd>
+		<dt class="col-sm-2">
+			Email
+		</dt>
+		<dd class="col-sm-10">
+			@Model.Email
+		</dd>
+		<dt class="col-sm-2">
+			Имя
+		</dt>
+		<dd class="col-sm-10">
+			@Model.FirstName
+		</dd>
+		<dt class="col-sm-2">
+			Фамилия
+		</dt>
+		<dd class="col-sm-10">
+			@Model.LastName
+		</dd>
+		<dt class="col-sm-2">
+			Номер телефона
+		</dt>
+		<dd class="col-sm-10">
+			@Model.PhoneNumber
+		</dd>
+	</dl>
+</div>
+<div>
+	<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Изменить</a>
+	<a asp-action="Index" class="btn btn-secondary">К списку</a>
+</div>

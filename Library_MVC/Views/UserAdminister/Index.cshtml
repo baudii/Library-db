@@ -1,0 +1,134 @@
+﻿@model List<Library_MVC.Models.UserModel>
+
+@{
+	ViewData["Title"] = "Управление пользователями";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Index" method="get">
+	<div class="form-row d-flex align-items-center">
+		<div class="form-group col-md-4 mb-0">
+			<input type="text" name="searchString" value="@ViewData["CurrentFilter"]" class="form-control" placeholder="Поиск..." />
+		</div>
+		<div class="ml-2">
+			<button type="submit" class="btn btn-primary">Поиск</button>
+		</div>
+	</div>
+</form>
+
+<table class="table table-fixed">
+	<thead>
+		<tr>
+			<th style="width:15%;">
+				<a asp-action="Index" asp-route-sortOrder="@ViewData["UserNameSortParm"]" asp-route-searchString="@ViewData["CurrentFilter"]">Имя пользователя</a>
+			</th>
+			<th style="width:15%;">
+				<a asp-action="Index" asp-route-sortOrder="@ViewData["EmailSortParm"]" asp-route-searchString="@ViewData["CurrentFilter"]">Email</a>
+			</th>
+			<th style="width:10%;">
+				<a asp-action="Index" asp-route-sortOrder="@ViewData["FirstNameSortParm"]" asp-route-searchString="@ViewData["CurrentFilter"]">Имя</a>
+			</th>
+			<th style="width:10%;">
+				<a asp-action="Index" asp-route-sortOrder="@ViewData["LastNameSortParm"]" asp-route-searchString="@ViewData["CurrentFilter"]">Фамилия</a>
+			</th>
+			<th style="width:15%;">Номер телефона</th>
+			<th style="width:5%;">
+				<a asp-action="Index" asp-route-sortOrder="@ViewData["RoleSortParm"]" asp-route-searchString="@ViewData["CurrentFilter"]">Роль</a>
+			</th>
+			<th style="width:30%;">Действия</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var user in Model)
+		{
+			@if (user.UserName == "admin")
+			{
+				continue;
+			}
+			<tr>
+				<td>@user.UserName</td>
+				<td>@user.Email</td>
+				<td>@user.FirstName</td>
+				<td>@user.LastName</td>
+				<td>@user.PhoneNumber</td>
+				<td>
+				@if (ViewBag.UserRoles != null && ViewBag.UserRoles.ContainsKey(user.Id))
+				{
+					@string.Join(", ", ViewBag.UserRoles[user.Id])
+				}
+				</td>
+				<td>
+					<a asp-action="Details" asp-route-id="@user.Id">Подробнее</a><inline> | </inline>
+					<a asp-action="Edit" asp-route-id="@user.Id">Изменить</a><inline> | </inline> 
+					<a asp-action="Delete" asp-route-id="@user.Id">Удалить</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+<!-- Пагинация -->
+<nav aria-label="Page navigation">
+
+	@{
+		List<int> pages = new List<int>();
+
+		// Первые страницы
+		for (int i = 1; i <= Math.Min(4, ViewBag.TotalPages); i++)
+		{
+			pages.Add(i);
+		}
+
+		// Текущая страница и 3 страницы слева и справа от нее
+		int start = Math.Max(ViewBag.CurrentPage - 3, 1);
+		int end = Math.Min(ViewBag.CurrentPage + 3, ViewBag.TotalPages);
+		for (int i = start; i <= end; i++)
+		{
+			if (!pages.Contains(i))
+				pages.Add(i);
+		}
+
+		// Последние страницы
+		for (int i = Math.Max(ViewBag.TotalPages - 3, 1); i <= ViewBag.TotalPages; i++)
+		{
+			if (!pages.Contains(i))
+				pages.Add(i);
+		}
+
+		pages.Sort();
+	}
+	<ul class="pagination">
+		@if (ViewBag.CurrentPage > 1)
+		{
+		<li class="page-item">
+			<a class="page-link" href="@Url.Action("Index", new { pageNumber = 1, sortOrder = ViewBag.CurrentSort })">Первая</a>
+		</li>
+		}
+		@{
+			int prevPage = 0;
+			foreach (var p in pages)
+			{
+				if (prevPage != 0 && p - prevPage > 1)
+				{
+						<li class="page-item disabled"><span class="page-link">...</span></li>
+				}
+
+				<li class="page-item @(p == ViewBag.CurrentPage ? "active" : "")">
+					<a class="page-link" href="@Url.Action("Index", new { pageNumber = p, sortOrder = ViewBag.CurrentSort })">@p</a>
+				</li>
+				prevPage = p;
+			}
+
+			@if (ViewBag.CurrentPage < ViewBag.TotalPages)
+			{
+				<li class="page-item">
+							<a class="page-link" href="@Url.Action("Index", new { pageNumber = ViewBag.TotalPages, sortOrder = ViewBag.CurrentSort })">Последняя</a>
+				</li>
+			}
+		}
+	</ul>
+</nav>
+
+<a asp-action="CreateUser" class="btn btn-primary">Создать пользователя</a>
+<a asp-action="CreateModerator" class="btn btn-secondary">Создать модератора</a>
