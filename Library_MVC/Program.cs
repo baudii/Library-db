@@ -10,6 +10,20 @@ using Library_MVC.Data.Static;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Получаем строки подключения из переменных окружения
+var libraryConnectionString = Environment.GetEnvironmentVariable("LIBRARY_CONNECTION_STRING");
+var authConnectionString = Environment.GetEnvironmentVariable("AUTH_CONNECTION_STRING");
+
+if (!string.IsNullOrEmpty(libraryConnectionString) && !string.IsNullOrEmpty(authConnectionString))
+{
+	// Отключаем использование HTTPS
+	builder.WebHost.ConfigureKestrel(serverOptions =>
+	{
+		serverOptions.ListenAnyIP(5000);  // HTTP порт
+	});
+}
+
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<LibDBContext>(options =>
@@ -71,6 +85,19 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+// Автоматическое применение миграций
+using (var scope = app.Services.CreateScope())
+{
+	var services = scope.ServiceProvider;
+
+	// Применяем миграции для LibraryDB
+	var libraryContext = services.GetRequiredService<LibDBContext>();
+	libraryContext.Database.Migrate();
+
+	// Применяем миграции для AccountDB
+	var accountContext = services.GetRequiredService<AuthDbContext>();
+	accountContext.Database.Migrate();
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -88,5 +115,46 @@ app.MapControllerRoute(
 	name: "default",
 	pattern: "{controller=Home}/{action=Index}/{id?}"
 );
+
+using (var scope = app.Services.CreateScope())
+{
+	var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+	var roles = new[] { AccountController.AdminRole, AccountController.ModeratorRole, AccountController.MemberRole };
+
+	foreach (var role in roles)
+	{
+		if (!await roleManager.RoleExistsAsync(role))
+		{
+			await roleManager.CreateAsync(new IdentityRole(role));
+		}
+	}
+}
+
+// Тестируем роли:
+using (var scope = app.Services.CreateScope())
+{
+	var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserModel>>();
+
+	string adminUserName = "admin";
+	string adminEmail = "admin@admin.com";
+	var user = await userManager.FindByNameAsync(adminUserName);
+
+	if (user == null)
+	{
+		user = new UserModel();
+		user.UserName = adminUserName;
+		user.Email = adminEmail;
+		user.EmailConfirmed = true;
+		//Admin1@
+		//Moderator1@
+		await userManager.CreateAsync(user, "Admin1@");
+	}
+	var roles = await userManager.GetRolesAsync(user);
+	if (roles.Count > 1 || roles[0] != AccountController.AdminRole)
+	{
+		await userManager.RemoveFromRolesAsync(user, roles);
+		await userManager.AddToRoleAsync(user, AccountController.AdminRole);
+	}
+}
 
 app.Run();

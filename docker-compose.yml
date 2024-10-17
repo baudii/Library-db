@@ -1,0 +1,50 @@
+﻿services:
+  library_mvc:
+    container_name: library_mvc
+    build:
+      context: .
+      dockerfile: Library_MVC/Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      authenticatedb:
+        condition: service_healthy
+      librarydb:
+        condition: service_healthy
+    environment:
+      - LIBRARY_CONNECTION_STRING=Server=librarydb;Database=LibraryDb;User Id=postgres;Password=1234;
+      - AUTH_CONNECTION_STRING=Server=authenticatedb;Database=AuthDb;User Id=postgres;Password=1234;
+    
+  librarydb:
+    image: postgres:17.0
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: librarydb
+    volumes:
+      - ./data/librarydb:/var/lib/postgresql/data  # Монтируем директорию с данными
+      - ./dumps/librarydb.sql:/docker-entrypoint-initdb.d/librarydb.sql  # Монтируем SQL дамп
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  authenticatedb:
+    image: postgres:17.0
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: authenticatedb
+    volumes:
+      - ./data/authenticatedb:/var/lib/postgresql/data  # Монтируем директорию с данными
+      - ./dumps/authenticatedb.sql:/docker-entrypoint-initdb.d/authenticatedb.sql  # Монтируем SQL дамп
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

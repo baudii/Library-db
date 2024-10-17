@@ -220,6 +220,13 @@ csx/
 ecf/
 rcf/
 
+# Игнорируем логи и временные файлы Docker
+*.log
+*.pid
+tmp/
+.env
+/data/
+
 # Windows Store app package directories and files
 AppPackages/
 BundleArtifacts/
