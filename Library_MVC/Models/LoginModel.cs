@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
-using Library_MVC.Models.Attributes;
 
 namespace Library_MVC.Models
 {
@@ -10,8 +9,8 @@ namespace Library_MVC.Models
 		[Required(ErrorMessage = "Не указан Email")]
 		public string? Email { get; set; }
 
-		[PasswordValidation(ErrorMessage = "Пароль не соответствует требованиям.")]
 		[Required(ErrorMessage = "Не указан пароль")]
+		[DataType(DataType.Password)]
 		public string? Password { get; set; }
 	}
 }
