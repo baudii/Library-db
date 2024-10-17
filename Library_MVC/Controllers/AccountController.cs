@@ -1,32 +1,60 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Mvc;
 using Library_MVC.Data;
 using Library_MVC.Models;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Identity;
 
 namespace Library_MVC.Controllers
 {
 	public class AccountController : Controller
 	{
-		private UserContext _dbContext; 
-		
-		public AccountController(UserContext context)
+		public const string AdminRole = "Admin";
+		public const string ModeratorRole = "Moderator";
+		public const string MemberRole = "Member";
+
+		private AuthDbContext _dbContext; 
+		private UserManager<UserModel> _userManager;
+		private SignInManager<UserModel> _signInManager;
+
+		public AccountController(
+				UserManager<UserModel> userManager, 
+				SignInManager<UserModel> signInManager, 
+				AuthDbContext context)
 		{
 			_dbContext = context;
-
+			_userManager = userManager;
+			_signInManager = signInManager;
 		}
 
 		public IActionResult Index()
 		{
+			if (User.Identity != null && User.Identity.IsAuthenticated)
+				return RedirectToAction(nameof(Details));
+
+			return RedirectToAction(nameof(Login));
+		}
+		public IActionResult AccessDenied()
+		{
 			return View();
 		}
 
-		[HttpGet]
+		public IActionResult Error()
+		{
+			return View();
+		}
+
+		#region Login
+
 		public IActionResult Login()
 		{
+			if (User.Identity != null && User.Identity.IsAuthenticated)
+				return RedirectToAction(nameof(Details));
+
+
+			if (TempData["SuccessMessage"] != null)
+			{
+				ViewBag.Message = "Аккаунт подтвержден!";
+			}
 			return View();
 		}
 
@@ -36,27 +64,37 @@ namespace Library_MVC.Controllers
 		{
 			if (ModelState.IsValid)
 			{
-				UserModel? user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+				var user = await _userManager.FindByEmailAsync(model.Email!);
 				
 				if (user != null)
 				{
-					string passwordHash = GetHashString(user.Salt + model.Password);
+					var result = await _signInManager.PasswordSignInAsync(user, model.Password!, isPersistent: false, lockoutOnFailure: false); 
 
-					if (user.PasswordHash == passwordHash)
-					{
-						await Authenticate(model.Email!);
+					if (result.Succeeded)
+						return RedirectToAction(nameof(Index));
+					else if (result.IsNotAllowed)
+						return RedirectToAction(nameof(EmailConfirmationController.SendConfirmation), "EmailConfirmation", new { userId = user.Id });
+					else if (result.IsLockedOut)
+						ModelState.AddModelError("", "Ваш аккаунт заблокирован.");
+					else
+						ModelState.AddModelError("", "Неверный пароль.");
 
-						return RedirectToAction("Index", "Home");
-					}
+					return View(model);
 				}
-				ModelState.AddModelError("", "Некорректные логин и(или) пароль");
+
+				ModelState.AddModelError("", "Некорректные логин и (или) пароль");
 			}
 			return View(model);
 		}
 
-		[HttpGet]
+		#endregion
+
+		#region Register
+
 		public IActionResult Register()
 		{
+			if (User.Identity != null && User.Identity.IsAuthenticated)
+				return RedirectToAction(nameof(Details));
 			return View();
 		}
 
@@ -64,47 +102,136 @@ namespace Library_MVC.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Register(RegisterModel model)
 		{
-			if (ModelState.IsValid)
+			if (!ModelState.IsValid)
+				return View();
+			
+			var task = _userManager.FindByEmailAsync(model.Email!);
+			var user = task.Result;
+
+			if (user != null)
 			{
-				UserModel? user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
-				if (user == null)
-				{
-					user = new UserModel();
-					user.Salt = GetRandomgSalt();
-					user.Email = model.Email;
-					user.PasswordHash = GetHashString(user.Salt + model.Password!);
-
-					_dbContext.Users.Add(user);
-					await _dbContext.SaveChangesAsync();
-
-					await Authenticate(model.Email!);
-
-					return RedirectToAction("Index", "Home");
-				}
-				else
-					ModelState.AddModelError("", "Аккаунт с таким адресом электронной почты уже существует");
+				ModelState.AddModelError("", "Аккаунт с таким адресом электронной почты уже существует");
+				return View();
 			}
+			// Password12@
+			user = new UserModel();
+			user.Email = model.Email;
+			user.UserName = model.UserName;
+			user.PhoneNumber = model.PhoneNumber;
+			user.FirstName = model.FirstName;
+			user.LastName = model.LastName;
+
+			IdentityResult result = await _userManager.CreateAsync(user, model.Password!);
+
+			if (!result.Succeeded)
+			{
+				foreach (var error in result.Errors)
+				{
+					ModelState.AddModelError("", Localization.GetRuIdentityError(error.Code));
+				}
+				return View(model);
+			}
+
+			await _userManager.AddToRoleAsync(user, "Member");
+
+			if (_userManager.Options.SignIn.RequireConfirmedAccount)
+			{
+				return RedirectToAction(nameof(EmailConfirmationController.SendConfirmation), "EmailConfirmation", new {userId = user.Id});
+			}
+			else
+			{
+				await _signInManager.SignInAsync(user, isPersistent: false);
+				return RedirectToAction(nameof(Index));
+			}
+		}
+
+		#endregion
+
+		#region Manage
+
+		[HttpGet]
+		public async Task<IActionResult> Details()
+		{
+			// Получаем текущего пользователя
+			var user = await _userManager.FindByNameAsync(User.Identity!.Name!);
+
+			if (user == null)
+			{
+				ModelState.AddModelError("", "Пользователь не найден");
+				return View();
+			}
+
+			// Передаем данные пользователя в представление
+			var model = new UserModel()
+			{
+				UserName = user.UserName,
+				FirstName = user.FirstName,
+				LastName = user.LastName,
+				Email = user.Email,
+				PhoneNumber = user.PhoneNumber
+			};
+
+			var roles = await _userManager.GetRolesAsync(user);
+			var userRole = roles.FirstOrDefault();
+			if (userRole == null)
+			{
+				var result = await _userManager.AddToRoleAsync(user, "Member");
+				if (result.Succeeded)
+					userRole = "Member";
+				else
+					userRole = "Нет роли";
+			}
+			ViewBag.UserRole = userRole;
+
 			return View(model);
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> Details(EditModel model)
+		{
+			var user = await _userManager.FindByNameAsync(model.UserName!);
+			if (user == null)
+			{
+				ModelState.AddModelError("", $"Что-то пошло не так. Пользователь с ником {model.UserName} не найден");
+				return View(new UserModel
+				{
+					Email = model.Email,
+					FirstName = model.FirstName,
+					LastName = model.LastName,
+					PhoneNumber = model.PhoneNumber,
+					UserName = model.UserName
+				});
+			}
+
+			user.Email = model.Email;
+			user.FirstName = model.FirstName;
+			user.LastName = model.LastName;
+			user.PhoneNumber = model.PhoneNumber;
+			user.UserName = model.UserName;
+
+			var result = await _userManager.UpdateAsync(user);
+
+			if (!result.Succeeded)
+			{
+				foreach (var error in result.Errors)
+				{
+					ModelState.AddModelError("", Localization.GetRuIdentityError(error.Code));
+				}
+				return View(user);
+			}
+
+			return RedirectToAction(nameof(Index));
 		}
 
 		public async Task<IActionResult> Logout()
 		{
-			await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-			return RedirectToAction("Login", "Account");
+			await _signInManager.SignOutAsync();
+			return RedirectToAction(nameof(Login));
 		}
 
-		private async Task Authenticate(string userName)
-		{
-			// создаем один claim
-			var claims = new List<Claim>
-			{
-				new Claim(ClaimsIdentity.DefaultNameClaimType, userName)
-			};
-			// создаем объект ClaimsIdentity
-			ClaimsIdentity identity = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
-			// установка аутентификационных куки
-			await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-		}
+		#endregion
+
+		#region Depricated
 
 		public static string GetHashString(string str)
 		{
@@ -114,7 +241,7 @@ namespace Library_MVC.Controllers
 			return hash;
 		}
 
-		public static string GetRandomgSalt()
+		private static string GetRandomgSalt()
 		{
 			var randomNumber = new byte[32];
 			string refreshToken = "";
@@ -127,5 +254,7 @@ namespace Library_MVC.Controllers
 
 			return refreshToken;
 		}
+
+		#endregion
 	}
 }

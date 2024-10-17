@@ -1,5 +1,104 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Library_MVC.Models.RegisterModel
 @{
+	ViewData["Title"] = "Login";
+}
+
+<h2>Регистрация</h2>
+<form method="post" id="#loginForm">
+	<div class="container mt-5">
+		<div class="card shadow">
+			<div class="card-header bg-primary text-white">
+				<h3 class="mb-0">Укажите свои данные:</h3>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Имя пользователя</label>
+						<input asp-for="UserName" type="text" class="form-control">
+						<span asp-validation-for="UserName" class="text-danger"></span>
+					</div>
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Email</label>
+						<input asp-for="Email" type="email" class="form-control">
+						<span asp-validation-for="Email" class="text-danger"></span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Имя</label>
+						<input asp-for="FirstName" type="text" class="form-control">
+					</div>
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Фамилия</label>
+						<input asp-for="LastName" type="text" class="form-control">
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Номер телефона</label>
+						<input asp-for="PhoneNumber" type="text" class="form-control">
+						<span asp-validation-for="PhoneNumber" class="text-danger"></span>
+					</div>
+				</div>
+				<hr />
+				<div class="row">
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Пароль</label>
+						<input asp-for="Password" type="password" class="form-control">
+						<span asp-validation-for="Password" class="text-danger"></span>
+					</div>
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Подтвердите пароль</label>
+						<input asp-for="ConfirmPassword" type="password" class="form-control">
+						<span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+					</div>
+				</div>
+			</div>
+			<div class="card-footer text-end">
+				<a class="btn btn-secondary" asp-controller="Home" asp-action="Index">Назад</a>
+				<button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+			</div>
+		</div>
+		@Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+	</div>
+</form>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Инициализация валидации на лету
+            $.validator.setDefaults({
+                ignore: []
+            });
+
+            // Включение валидации на лету
+            $('#loginForm').validate({
+                rules: {
+                    Email: {
+                        required: true,
+                        email: true
+                    },
+                    Password: {
+                        required: true,
+                        minlength: 8,
+                        // Добавьте свои дополнительные правила здесь
+                    }
+                },
+                messages: {
+                    Email: {
+                        required: "Не указан Email",
+                        email: "Введите корректный Email"
+                    },
+                    Password: {
+                        required: "Не указан пароль",
+                        minlength: "Пароль должен содержать минимум 8 символов",
+                        // Добавьте свои сообщения здесь
+                    }
+                },
+                errorElement: "span",
+                errorClass: "text-danger"
+            });
+        });
+    </script>
 }

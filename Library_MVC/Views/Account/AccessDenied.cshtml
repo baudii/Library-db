@@ -1,0 +1,24 @@
+﻿@{
+	ViewBag.Title = "Доступ запрещён";
+	Layout = "~/Views/Shared/_Layout.cshtml"; // Укажите ваш основной макет, если используете его
+}
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-12 text-center mt-5">
+			<h1 class="display-4 text-danger">Доступ запрещён</h1>
+			<p class="lead">У вас нет прав для доступа к этой странице.</p>
+
+			@if (!User.Identity!.IsAuthenticated)
+			{
+					<p>Пожалуйста, <a href="@Url.Action("Login", "Account")">войдите в систему</a>, чтобы продолжить.</p>
+			}
+			else
+			{
+					<p>Если вы считаете, что это ошибка, свяжитесь с администратором.</p>
+			}
+
+			<a href="@Url.Action("Index", "Home")" class="btn btn-primary mt-3">На главную</a>
+		</div>
+	</div>
+</div>

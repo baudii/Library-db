@@ -3,30 +3,41 @@
 	ViewData["Title"] = "Login";
 }
 
-<h2>Login</h2>
-
-<form method="post">
-	<div class="form-group row">
-		<label asp-for="Email" class="col-sm-2 col-form-label"></label>
-		<div class="col-sm-10">
-			<input asp-for="Email" type="email" class="form-control-sm" />
-			<span asp-validation-for="Email" class="text-danger"></span>
+<h2>Войти</h2>
+<form method="post" id="#loginForm">
+	<div class="container mt-5">
+		<div class="card shadow">
+			<div class="card-header bg-primary text-white">
+				<h3 class="mb-0">Ваши данные</h3>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Email</label>
+						<input asp-for="Email" type="email" class="form-control">
+						<span asp-validation-for="Email" class="text-danger"></span>
+					</div>
+					<div class="col-md-6 mb-3">
+						<label class="form-label">Пароль</label>
+						<input asp-for="Password" type="password" class="form-control">
+						<span asp-validation-for="Password" class="text-danger"></span>
+					</div>
+				</div>
+			</div>
+			<div class="card-footer text-end">
+				<a class="btn btn-secondary" asp-controller="Home" asp-action="Index">Назад</a>
+				<button type="submit" class="btn btn-primary">Войти</button>
+			</div>
 		</div>
-	</div>
-
-	<div class="form-group row">
-		<label asp-for="Password" class="col-sm-2 col-form-label"></label>
-		<div class="col-sm-10">
-			<input asp-for="Password" type="password" class="form-control-sm" />
-			<span asp-validation-for="Password" class="text-danger"></span>
-		</div>
-	</div>
-	<br />
-	<div class="form-group">
-		<button type="submit" class="btn btn-primary">Login</button>
+		@Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
 	</div>
 </form>
-
+@if (ViewBag.Message != null)
+{
+	<div class="alert alert-success">
+		@ViewBag.Message
+	</div>
+}
 @section Scripts {
 		<partial name="_ValidationScriptsPartial" />
 }
