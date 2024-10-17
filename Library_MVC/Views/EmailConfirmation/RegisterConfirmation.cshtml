@@ -1,0 +1,8 @@
+﻿@model string?
+
+<h1>Подтверждение регистрации</h1>
+@if (Model != null)
+{
+	<a href="@Model">Ссылка на подтверждение</a>
+}
+@Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
