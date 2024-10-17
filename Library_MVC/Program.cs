@@ -11,16 +11,20 @@ using Library_MVC.Data.Static;
 var builder = WebApplication.CreateBuilder(args);
 
 // Получаем строки подключения из переменных окружения
-var libraryConnectionString = Environment.GetEnvironmentVariable("LIBRARY_CONNECTION_STRING");
-var authConnectionString = Environment.GetEnvironmentVariable("AUTH_CONNECTION_STRING");
+var is_Docker_Env = Environment.GetEnvironmentVariable("IS_DOCKER");
+string libConnectionStringName = "LibraryDB";
+string accountConnectionStringName = "AccountDB";
 
-if (!string.IsNullOrEmpty(libraryConnectionString) && !string.IsNullOrEmpty(authConnectionString))
+if (!string.IsNullOrEmpty(is_Docker_Env))
 {
+	// Мы внутри Docker
 	// Отключаем использование HTTPS
 	builder.WebHost.ConfigureKestrel(serverOptions =>
 	{
 		serverOptions.ListenAnyIP(5000);  // HTTP порт
 	});
+	libConnectionStringName += "_Docker";
+	accountConnectionStringName += "_Docker";
 }
 
 
@@ -28,14 +32,14 @@ if (!string.IsNullOrEmpty(libraryConnectionString) && !string.IsNullOrEmpty(auth
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<LibDBContext>(options =>
 {
-	options.UseNpgsql(builder.Configuration.GetConnectionString("LibraryDB"),
+	options.UseNpgsql(builder.Configuration.GetConnectionString(libConnectionStringName),
 		npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null));
 });
 
 
 builder.Services.AddDbContext<AuthDbContext>(options =>
 {
-	options.UseNpgsql(builder.Configuration.GetConnectionString("AccountDB"),
+	options.UseNpgsql(builder.Configuration.GetConnectionString(accountConnectionStringName),
 		npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null));
 });
 
@@ -139,20 +143,22 @@ using (var scope = app.Services.CreateScope())
 	string adminEmail = "admin@admin.com";
 	var user = await userManager.FindByNameAsync(adminUserName);
 
-	if (user == null)
+	if (user != null)
 	{
-		user = new UserModel();
-		user.UserName = adminUserName;
-		user.Email = adminEmail;
-		user.EmailConfirmed = true;
-		//Admin1@
-		//Moderator1@
-		await userManager.CreateAsync(user, "Admin1@");
+		await userManager.DeleteAsync(user);
 	}
+	user = new UserModel();
+	user.UserName = adminUserName;
+	user.Email = adminEmail;
+	user.EmailConfirmed = true;
+	//Admin1@
+	//Moderator1@
+	await userManager.CreateAsync(user, "Admin1@");
 	var roles = await userManager.GetRolesAsync(user);
-	if (roles.Count > 1 || roles[0] != AccountController.AdminRole)
+	if (roles == null || roles.Count == 0 || roles.Count > 1 || roles[0] != AccountController.AdminRole)
 	{
-		await userManager.RemoveFromRolesAsync(user, roles);
+		if (roles != null)
+			await userManager.RemoveFromRolesAsync(user, roles);
 		await userManager.AddToRoleAsync(user, AccountController.AdminRole);
 	}
 }

@@ -12,8 +12,7 @@
       librarydb:
         condition: service_healthy
     environment:
-      - LIBRARY_CONNECTION_STRING=Server=librarydb;Database=LibraryDb;User Id=postgres;Password=1234;
-      - AUTH_CONNECTION_STRING=Server=authenticatedb;Database=AuthDb;User Id=postgres;Password=1234;
+      - IS_DOCKER=TRUE;
     
   librarydb:
     image: postgres:17.0
