@@ -1,4 +1,4 @@
-using Library_MVC.Data;
+п»їusing Library_MVC.Data;
 using Library_MVC.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
@@ -10,18 +10,18 @@ using Library_MVC.Data.Static;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Получаем строки подключения из переменных окружения
+// РџРѕР»СѓС‡Р°РµРј СЃС‚СЂРѕРєРё РїРѕРґРєР»СЋС‡РµРЅРёСЏ РёР· РїРµСЂРµРјРµРЅРЅС‹С… РѕРєСЂСѓР¶РµРЅРёСЏ
 var is_Docker_Env = Environment.GetEnvironmentVariable("IS_DOCKER");
 string libConnectionStringName = "LibraryDB";
 string accountConnectionStringName = "AccountDB";
 
 if (!string.IsNullOrEmpty(is_Docker_Env))
 {
-	// Мы внутри Docker
-	// Отключаем использование HTTPS
+	// РњС‹ РІРЅСѓС‚СЂРё Docker
+	// РћС‚РєР»СЋС‡Р°РµРј РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ HTTPS
 	builder.WebHost.ConfigureKestrel(serverOptions =>
 	{
-		serverOptions.ListenAnyIP(5000);  // HTTP порт
+		serverOptions.ListenAnyIP(5000);  // HTTP РїРѕСЂС‚
 	});
 	libConnectionStringName += "_Docker";
 	accountConnectionStringName += "_Docker";
@@ -89,16 +89,16 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
-// Автоматическое применение миграций
+// РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ РїСЂРёРјРµРЅРµРЅРёРµ РјРёРіСЂР°С†РёР№
 using (var scope = app.Services.CreateScope())
 {
 	var services = scope.ServiceProvider;
 
-	// Применяем миграции для LibraryDB
+	// РџСЂРёРјРµРЅСЏРµРј РјРёРіСЂР°С†РёРё РґР»СЏ LibraryDB
 	var libraryContext = services.GetRequiredService<LibDBContext>();
 	libraryContext.Database.Migrate();
 
-	// Применяем миграции для AccountDB
+	// РџСЂРёРјРµРЅСЏРµРј РјРёРіСЂР°С†РёРё РґР»СЏ AccountDB
 	var accountContext = services.GetRequiredService<AuthDbContext>();
 	accountContext.Database.Migrate();
 }
@@ -134,7 +134,7 @@ using (var scope = app.Services.CreateScope())
 	}
 }
 
-// Тестируем роли:
+// РўРµСЃС‚РёСЂСѓРµРј СЂРѕР»Рё:
 using (var scope = app.Services.CreateScope())
 {
 	var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserModel>>();
