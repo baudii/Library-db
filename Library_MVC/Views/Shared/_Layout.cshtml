@@ -1,52 +1,113 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims;
+@using Library_MVC.Controllers;
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - LibDB</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Library_MVC.styles.css" asp-append-version="true" />
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - LibDB</title>
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+	<link rel="stylesheet" href="~/Library_MVC.styles.css" asp-append-version="true" />
+	<style>
+		body {
+			background: linear-gradient(135deg, #f3f4f6, #e9ecef);
+			color: #343a40;
+			font-family: 'Roboto', sans-serif;
+			line-height: 1.6;
+		}
+		.navbar {
+			background-color: #343a40 !important;
+			border-radius: 10px;
+		}
+		.navbar a.navbar-brand, .navbar-nav .nav-link {
+			color: #f8f9fa !important;
+		}
+		.navbar a.navbar-brand:hover, .navbar-nav .nav-link:hover {
+			color: #adb5bd !important;
+		}
+		.nav-item a {
+			font-size: 1.1rem;
+		}
+		footer {
+			background-color: #343a40;
+			color: #f8f9fa;
+			padding: 10px 0;
+		}
+		footer a {
+			color: #f8f9fa;
+		}
+		footer a:hover {
+			color: #adb5bd;
+		}
+		.container-fluid {
+			margin-top: 10px;
+		}
+		.navbar-toggler {
+			border: 1px solid #f8f9fa;
+		}
+	</style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
+	<header>
+		<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light shadow mb-4">
+			<div class="container-fluid">
 				<a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">LibDB</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+						aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+					<ul class="navbar-nav flex-grow-1">
+						<li class="nav-item">
+							<a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Главная</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link text-dark" asp-area="" asp-controller="Library" asp-action="Index">Library</a>
+							<a class="nav-link" asp-area="" asp-controller="Library" asp-action="Index">Библиотека</a>
 						</li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2024 - LibDB - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+						<li class="nav-item">
+							<a class="nav-link" asp-area="" asp-controller="Home" asp-action="About">О нас</a>
+						</li>
+					</ul>
+					<ul class="navbar-nav ms-auto justify-content-between d-sm-inline-flex">
+						<li class="nav-item">
+							@{
+								if (User.Identity!.IsAuthenticated)
+								{
+									<div class="text-end">
+										<a asp-authorize asp-roles="@AccountController.AdminRole" href="/UserAdminister" class="btn btn-outline-light">Управлять пользователями</a>
+										<a asp-controller="Account" asp-action="Details" class="btn btn-outline-light">@User.Identity.Name</a>
+										<a asp-controller="Account" asp-action="Logout" class="btn btn-danger">Выйти</a>
+									</div>
+								}
+								else
+								{
+									<div class="text-end">
+										<a asp-controller="Account" asp-action="Login" class="btn btn-outline-light">Войти</a>
+										<a asp-controller="Account" asp-action="Register" class="btn btn-outline-info ms-2">Зарегистрироваться</a>
+									</div>
+								}
+							}
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</header>
+	<div class="container">
+		<main role="main" class="pb-3">
+			@RenderBody()
+		</main>
+	</div>
+	<br />
+	<footer class="border-top footer text-muted mt-4">
+		<div class="container">
+			&copy; 2024 - LibDB - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+		</div>
+	</footer>
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="~/js/site.js" asp-append-version="true"></script>
+	@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
