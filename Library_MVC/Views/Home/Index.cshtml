@@ -47,11 +47,13 @@
 			<p>Обычные пользователи могут только просматривать каталог книг, авторизоваться и регистрироваться через систему подтверждения email.</p>
 		</div>
 	</div>
-
-	<div class="row mt-5">
-		<div class="col-md-12 text-center">
-			<a href="/Account/Register" class="btn btn-success btn-lg">Зарегистрироваться</a>
-			<a href="/Account/Login" class="btn btn-primary btn-lg">Войти</a>
+	@if (!User.Identity!.IsAuthenticated)
+	{
+		<div class="row mt-5">
+			<div class="col-md-12 text-center">
+				<a href="/Account/Register" class="btn btn-success btn-lg">Зарегистрироваться</a>
+				<a href="/Account/Login" class="btn btn-primary btn-lg">Войти</a>
+			</div>
 		</div>
-	</div>
+	}
 </div>
