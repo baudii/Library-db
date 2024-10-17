@@ -25,8 +25,28 @@ builder.Services.AddAuthentication(auth =>
 })
 .AddCookie(cookie =>
 {
-	cookie.Cookie.SameSite = SameSiteMode.Strict;
-	cookie.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+	options.Cookie.Name = "LibraryCookie";
+	options.Cookie.SameSite = SameSiteMode.Strict;
+	options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+	options.LoginPath = "/Account/Login";
+	options.AccessDeniedPath = "/Account/AccessDenied";
+});
+
+builder.Services.AddAuthorization(options =>
+{
+	options.AddPolicy(Policies.CreateMod, policy => policy.RequireRole(AccountController.AdminRole));
+	options.AddPolicy(Policies.EditMod, policy => policy.RequireRole(AccountController.AdminRole));
+	options.AddPolicy(Policies.DeleteMod, policy => policy.RequireRole(AccountController.AdminRole));
+
+	options.AddPolicy(Policies.CreateMember, policy => policy.RequireRole(AccountController.AdminRole));
+	options.AddPolicy(Policies.EditMember, policy => policy.RequireRole(AccountController.AdminRole));
+	options.AddPolicy(Policies.DeleteMember, policy => policy.RequireRole(AccountController.AdminRole));
+	options.AddPolicy(Policies.BlockMember, policy => policy.RequireRole(AccountController.AdminRole, AccountController.ModeratorRole));
+
+	options.AddPolicy(Policies.CreateBook, policy => policy.RequireRole(AccountController.AdminRole, AccountController.ModeratorRole));
+	options.AddPolicy(Policies.EditBook, policy => policy.RequireRole(AccountController.AdminRole, AccountController.ModeratorRole));
+	options.AddPolicy(Policies.DeleteBook, policy => policy.RequireRole(AccountController.AdminRole));
+	options.AddPolicy(Policies.ReadBook, policy => policy.RequireRole(AccountController.AdminRole, AccountController.ModeratorRole, AccountController.MemberRole));
 });
 
 var app = builder.Build();
