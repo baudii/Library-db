@@ -4,8 +4,7 @@
 	ViewData["Title"] = "Edit Book";
 }
 
-<h1>Edit Book</h1>
-<h4>Book</h4>
+<h1>Редактировать книгу</h1>
 <hr />
 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 <form asp-action="Edit" method="post">
@@ -25,9 +24,10 @@
 		<input asp-for="PublishedYear" class="form-control" />
 		<span asp-validation-for="PublishedYear" class="text-danger"></span>
 	</div>
+	<br />
 	<div class="form-group">
-		<input type="submit" value="Save" class="btn btn-primary" />
-		<a asp-action="Index" class="btn btn-secondary">Cancel</a>
+		<input type="submit" value="Сохранить" class="btn btn-primary" />
+		<a asp-action="Index" class="btn btn-secondary">Отмена</a>
 	</div>
 </form>
 

@@ -6,9 +6,21 @@
 
 @model List<BookModel>
 @{
-	ViewData["Title"] = "Book collection";
+	ViewData["Title"] = "Коллекция книг";
 }
 <h1>@ViewData["Title"]</h1>
+
+<form asp-action="Index" method="get">
+	<div class="form-row d-flex align-items-center">
+		<div class="form-group col-md-4 mb-0">
+			<input type="text" name="searchString" value="@ViewData["CurrentFilter"]" class="form-control" placeholder="Поиск..." />
+		</div>
+		<div class="ml-2">
+			<button type="submit" class="btn btn-primary">Поиск</button>
+		</div>
+	</div>
+</form>
+
 
 <table class="table table-fixed">
 	@{
@@ -27,6 +39,7 @@
 			foreach (var prop in properties)
 			{
 				var res = Regex.Replace(prop.Name, "(\\B[A-Z])", " $1");
+				res = Localization.GetRuBookColumnName(res);
 
 				// Определяем параметр сортировки
 				string sortParam;
@@ -49,7 +62,8 @@
 
 				string width = columnWidths.ContainsKey(prop.Name) ? columnWidths[prop.Name] : "auto";
 				<th style="width:@width;">
-					<a asp-action="Index" asp-route-sortOrder="@sortParam" asp-route-pageNumber="@(ViewBag.CurrentPage)">
+					<a asp-action="Index" asp-route-sortOrder="@sortParam" asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-pageNumber="@ViewBag.CurrentPage" 
+																				class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
 						@res @Html.Raw(sortIcon)
 					</a>
 				</th>
@@ -75,44 +89,44 @@
 		}
 	</tbody>
 </table>
-
-<!-- Пагинация -->
-@{
-    List<int> pages = new List<int>();
-
-    // Первые страницы
-    for (int i = 1; i <= Math.Min(4, ViewBag.TotalPages); i++)
-    {
-        pages.Add(i);
-    }
-
-    // Текущая страница и 3 страницы слева и справа от нее
-    int start = Math.Max(ViewBag.CurrentPage - 3, 1);
-    int end = Math.Min(ViewBag.CurrentPage + 3, ViewBag.TotalPages);
-    for (int i = start; i <= end; i++)
-    {
-        if (!pages.Contains(i))
-            pages.Add(i);
-    }
-
-    // Последние страницы
-    for (int i = Math.Max(ViewBag.TotalPages - 3, 1); i <= ViewBag.TotalPages; i++)
-    {
-        if (!pages.Contains(i))
-            pages.Add(i);
-    }
-
-    pages.Sort();
-}
+	<!-- Пагинация -->
 
 <ul class="pagination">
-@if (ViewBag.CurrentPage > 1)
+@if (User.Identity!.IsAuthenticated)
 {
-    <li class="page-item">
+	List<int> pages = new List<int>();
+
+	// Первые страницы
+	for (int i = 1; i <= Math.Min(4, ViewBag.TotalPages); i++)
+	{
+		pages.Add(i);
+	}
+
+	// Текущая страница и 3 страницы слева и справа от нее
+	int start = Math.Max(ViewBag.CurrentPage - 3, 1);
+	int end = Math.Min(ViewBag.CurrentPage + 3, ViewBag.TotalPages);
+	for (int i = start; i <= end; i++)
+	{
+		if (!pages.Contains(i))
+			pages.Add(i);
+	}
+
+	// Последние страницы
+	for (int i = Math.Max(ViewBag.TotalPages - 3, 1); i <= ViewBag.TotalPages; i++)
+	{
+		if (!pages.Contains(i))
+			pages.Add(i);
+	}
+
+	pages.Sort();
+	
+	if (ViewBag.CurrentPage > 1)
+	{
+		<li class="page-item">
 			<a class="page-link" href="@Url.Action("Index", new { pageNumber = 1, sortOrder = ViewBag.CurrentSort })">Первая</a>
-    </li>
-}
-@{
+		</li>
+	}
+
 	int prevPage = 0;
 	foreach (var p in pages)
 	{
@@ -127,7 +141,7 @@
 		prevPage = p;
 	}
 
-	@if (ViewBag.CurrentPage < ViewBag.TotalPages)
+	if (ViewBag.CurrentPage < ViewBag.TotalPages)
 	{
 		<li class="page-item">
 			<a class="page-link" href="@Url.Action("Index", new { pageNumber = ViewBag.TotalPages, sortOrder = ViewBag.CurrentSort })">Последняя</a>
@@ -135,19 +149,11 @@
 	}
 }
 </ul>
+<a asp-authorize asp-policy="@Policies.CreateBook" asp-action="Create" class="btn btn-primary">Add New Book</a>
 
-<div asp-authorize class="panel panel-default">
-	<div class="panel-heading">Welcome !!</div>
-	<div class="panel-body">
-		If you're logged in, you can see this section
-	</div>
-</div>
-@if (!User.IsInRole("ReadBook"))
+
+@if (!User.Identity!.IsAuthenticated)
 {
-	<p>Log in</p>
-}
-@if (User.IsInRole("CreateBook"))
-{
-	<a asp-action="Create" class="btn btn-primary">Add New Book</a>
+	<h3>Войдите в аккаунт, чтобы просматривать библиотеку</h3>
 }
 <br />

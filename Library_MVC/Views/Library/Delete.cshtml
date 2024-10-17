@@ -4,22 +4,22 @@
 	ViewData["Title"] = "Delete Book";
 }
 
-<h1>Delete Book</h1>
+<h1>Удалить книгу</h1>
 
-<h4>Are you sure you want to delete this book?</h4>
+<h4>Вы уверены, что хотите удалить данную книгу?</h4>
 <hr />
 <div>
-	<h4>@Model.Title</h4>
+	<h4><strong>Название:</strong> @Model.Title</h4>
 	<div>
-		<strong>Author:</strong> @Model.Author<br />
-		<strong>Published Year:</strong> @Model.PublishedYear
+		<strong>Автор:</strong> @Model.Author<br />
+		<strong>Год публикаци:</strong> @Model.PublishedYear
 	</div>
 </div>
 
 <form asp-action="DeleteConfirmed" method="post">
 	<input type="hidden" asp-for="Id" />
 	<div class="form-group">
-		<input type="submit" value="Delete" class="btn btn-danger" />
-		<a asp-action="Index" class="btn btn-secondary">Cancel</a>
+		<input type="submit" value="Удалить" class="btn btn-danger" />
+		<a asp-action="Index" class="btn btn-secondary">Отмена</a>
 	</div>
 </form>

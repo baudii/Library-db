@@ -1,29 +1,49 @@
 using Library_MVC.Data;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Library_MVC.Models;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using Library_MVC;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Library_MVC.Controllers;
+using Library_MVC.Data.Static;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<LibDBContext>(response =>
+builder.Services.AddDbContext<LibDBContext>(options =>
 {
-	response.UseNpgsql(builder.Configuration.GetConnectionString("LibraryDB"));
+	options.UseNpgsql(builder.Configuration.GetConnectionString("LibraryDB"),
+		npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null));
 });
 
-builder.Services.AddDbContext<UserContext>(options =>
+
+builder.Services.AddDbContext<AuthDbContext>(options =>
 {
-	//options.UseNpgsql(builder.Configuration.GetConnectionString("LibraryDB"));
+	options.UseNpgsql(builder.Configuration.GetConnectionString("AccountDB"),
+		npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null));
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddSingleton<IEmailSender, AuthEmailSender>();
 
-builder.Services.AddAuthentication(auth =>
+builder.Services.AddIdentity<UserModel, IdentityRole>(options =>
 {
-	auth.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-	auth.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+	options.SignIn.RequireConfirmedAccount = true;
+	options.User.RequireUniqueEmail = true;
+	options.Password.RequireDigit = true;
+	options.Password.RequireLowercase = true;
+	options.Password.RequireUppercase = true;
+	options.Password.RequireNonAlphanumeric = true;
+	options.Lockout.MaxFailedAccessAttempts = 6;
+	options.ClaimsIdentity.RoleClaimType = ClaimTypes.Role;
 })
-.AddCookie(cookie =>
+.AddEntityFrameworkStores<AuthDbContext>()
+.AddDefaultTokenProviders()
+.AddDefaultUI();
+
+
+builder.Services.ConfigureApplicationCookie(options =>
 {
 	options.Cookie.Name = "LibraryCookie";
 	options.Cookie.SameSite = SameSiteMode.Strict;
@@ -52,22 +72,17 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
 	app.UseExceptionHandler("/Home/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 	app.UseHsts();
 }
 
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllerRoute(
 	name: "default",
