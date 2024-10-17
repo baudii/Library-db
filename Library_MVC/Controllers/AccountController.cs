@@ -3,10 +3,11 @@ using Library_MVC.Data;
 using Library_MVC.Models;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
+using Library_MVC.Data.Static;
 
 namespace Library_MVC.Controllers
 {
-	public class AccountController : Controller
+    public class AccountController : Controller
 	{
 		public const string AdminRole = "Admin";
 		public const string ModeratorRole = "Moderator";

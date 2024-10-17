@@ -73,5 +73,21 @@
 			}
 			return message;
 		}
+
+		public static string GetRuBookColumnName(string columnName)
+		{
+			switch (columnName)
+			{
+				case "Id":
+					return "Id";
+				case "Author":
+					return "Автор";
+				case "Title":
+					return "Название";
+				case "Published Year":
+					return "Год публикации";
+			}
+			throw new ArgumentException("Incorrect column name was provided");
+		}
 	}
 }
