@@ -1,8 +1,57 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+	ViewData["Title"] = "Добро пожаловать в библиотеку";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="jumbotron text-center">
+	<h1 class="display-4">Добро пожаловать в библиотеку</h1>
+	<p class="lead">Это система управления библиотекой с поддержкой операций для администраторов и модераторов.</p>
+	<hr class="my-4">
+	<p>Наша библиотека поддерживает операции по созданию, редактированию, удалению и просмотру данных о книгах, а также удобную систему авторизации с подтверждением учетной записи через email.</p>
+	<p>Только пользователи с ролью <strong>Admin</strong> или <strong>Moderator</strong> могут управлять книгами и пользователями библиотеки.</p>
+	<a class="btn btn-primary btn-lg" href="/Library" role="button">Просмотр книг</a>
+</div>
+
+<div class="container mt-5">
+	<h2>Функционал сайта</h2>
+
+	<div class="row mt-4">
+		<div class="col-md-6">
+			<h3>Управление библиотекой</h3>
+			<p>Пользователи с правами <strong>Admin</strong> и <strong>Moderator</strong> могут:</p>
+			<ul>
+				<li>Создавать новые записи о книгах</li>
+				<li>Редактировать существующие книги</li>
+				<li>Удалять книги из библиотеки</li>
+				<li>Просматривать список всех книг</li>
+			</ul>
+		</div>
+		<div class="col-md-6">
+			<h3>Система авторизации</h3>
+			<p>Сайт использует систему <strong>Identity</strong> для безопасной регистрации и входа пользователей. Также предусмотрены:</p>
+			<ul>
+				<li>Подтверждение email при регистрации</li>
+				<li>Восстановление пароля через email</li>
+				<li>Вход в систему для зарегистрированных пользователей</li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="row mt-5">
+		<div class="col-md-12">
+			<h2>Кто может использовать систему?</h2>
+			<p>Система предназначена для двух типов пользователей:</p>
+			<ul>
+				<li><strong>Администраторы (Admin)</strong>: Полный доступ ко всем функциям системы, включая управление пользователями.</li>
+				<li><strong>Модераторы (Moderator)</strong>: Доступ к функциям управления книгами, без прав на управление пользователями.</li>
+			</ul>
+			<p>Обычные пользователи могут только просматривать каталог книг, авторизоваться и регистрироваться через систему подтверждения email.</p>
+		</div>
+	</div>
+
+	<div class="row mt-5">
+		<div class="col-md-12 text-center">
+			<a href="/Account/Register" class="btn btn-success btn-lg">Зарегистрироваться</a>
+			<a href="/Account/Login" class="btn btn-primary btn-lg">Войти</a>
+		</div>
+	</div>
 </div>

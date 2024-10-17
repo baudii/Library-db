@@ -1,6 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Components;
 @using System.Reflection;
 @using System.Text.RegularExpressions;
+@using System.Linq;
+@using Library_MVC.Data.Static;
 
 @model List<BookModel>
 @{
@@ -8,38 +10,144 @@
 }
 <h1>@ViewData["Title"]</h1>
 
-<table class="table">
+<table class="table table-fixed">
+	@{
+		var columnWidths = new Dictionary<string, string>
+		{
+			{ "Id", "5%" },
+			{ "Author", "20%" },
+			{ "Title", "40%" },
+			{ "PublishedYear", "15%" }
+		};
+	}
 	<thead>
 		<tr>
-			@{
-				var properties = typeof(BookModel).GetProperties();
-				foreach (var prop in properties)
+		@{
+			var properties = typeof(BookModel).GetProperties();
+			foreach (var prop in properties)
+			{
+				var res = Regex.Replace(prop.Name, "(\\B[A-Z])", " $1");
+
+				// Определяем параметр сортировки
+				string sortParam;
+				string sortIcon = "";
+
+				if (ViewBag.CurrentSort == prop.Name + "_asc")
 				{
-					// Properties of a model should be written in camel case
-					var res = Regex.Replace(prop.Name, "(\\B[A-Z])", " $1");
-					<th>
-						@res
-					</th>
+					sortParam = prop.Name + "_desc";
+					sortIcon = " ▲";
 				}
+				else if (ViewBag.CurrentSort == prop.Name + "_desc")
+				{
+					sortParam = prop.Name + "_asc";
+					sortIcon = " ▼";
+				}
+				else
+				{
+					sortParam = prop.Name + "_asc";
+				}
+
+				string width = columnWidths.ContainsKey(prop.Name) ? columnWidths[prop.Name] : "auto";
+				<th style="width:@width;">
+					<a asp-action="Index" asp-route-sortOrder="@sortParam" asp-route-pageNumber="@(ViewBag.CurrentPage)">
+						@res @Html.Raw(sortIcon)
+					</a>
+				</th>
 			}
+		}
 		</tr>
 	</thead>
-	<tbody>
-			@foreach (var book in Model)
-			{
-				<tr>
-					@foreach (var prop in properties)
-					{
-						<td>
-							@prop.GetValue(book)
-						</td>
-					}
-						<td>
-							<a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-warning">Edit</a>
-							<a asp-action="Delete" asp-route-id="@book.Id" class="btn btn-danger">Delete</a>
-						</td>
-				</tr>
-			}
+	<tbody asp-authorize asp-policy="ReadBook">
+		@foreach (var book in Model)
+		{
+			<tr>
+				@foreach (var prop in properties)
+				{
+					<td>
+						@prop.GetValue(book)
+					</td>
+				}
+				<td asp-authorize asp-policy="@Policies.EditBook">
+					<a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-secondary">Edit</a>
+					<a asp-authorize asp-policy="@Policies.DeleteBook" asp-action="Delete" asp-route-id="@book.Id" class="btn btn-danger">Delete</a>
+				</td>
+			</tr>
+		}
 	</tbody>
 </table>
-<a asp-action="Create" class="btn btn-primary">Add New Book</a>
+
+<!-- Пагинация -->
+@{
+    List<int> pages = new List<int>();
+
+    // Первые страницы
+    for (int i = 1; i <= Math.Min(4, ViewBag.TotalPages); i++)
+    {
+        pages.Add(i);
+    }
+
+    // Текущая страница и 3 страницы слева и справа от нее
+    int start = Math.Max(ViewBag.CurrentPage - 3, 1);
+    int end = Math.Min(ViewBag.CurrentPage + 3, ViewBag.TotalPages);
+    for (int i = start; i <= end; i++)
+    {
+        if (!pages.Contains(i))
+            pages.Add(i);
+    }
+
+    // Последние страницы
+    for (int i = Math.Max(ViewBag.TotalPages - 3, 1); i <= ViewBag.TotalPages; i++)
+    {
+        if (!pages.Contains(i))
+            pages.Add(i);
+    }
+
+    pages.Sort();
+}
+
+<ul class="pagination">
+@if (ViewBag.CurrentPage > 1)
+{
+    <li class="page-item">
+			<a class="page-link" href="@Url.Action("Index", new { pageNumber = 1, sortOrder = ViewBag.CurrentSort })">Первая</a>
+    </li>
+}
+@{
+	int prevPage = 0;
+	foreach (var p in pages)
+	{
+		if (prevPage != 0 && p - prevPage > 1)
+		{
+			<li class="page-item disabled"><span class="page-link">...</span></li>
+		}
+
+		<li class="page-item @(p == ViewBag.CurrentPage ? "active" : "")">
+			<a class="page-link" href="@Url.Action("Index", new { pageNumber = p, sortOrder = ViewBag.CurrentSort })">@p</a>
+		</li>
+		prevPage = p;
+	}
+
+	@if (ViewBag.CurrentPage < ViewBag.TotalPages)
+	{
+		<li class="page-item">
+			<a class="page-link" href="@Url.Action("Index", new { pageNumber = ViewBag.TotalPages, sortOrder = ViewBag.CurrentSort })">Последняя</a>
+		</li>
+	}
+}
+</ul>
+
+<div asp-authorize class="panel panel-default">
+	<div class="panel-heading">Welcome !!</div>
+	<div class="panel-body">
+		If you're logged in, you can see this section
+	</div>
+</div>
+@if (!User.IsInRole("ReadBook"))
+{
+	<p>Log in</p>
+}
+@if (User.IsInRole("CreateBook"))
+{
+	<a asp-action="Create" class="btn btn-primary">Add New Book</a>
+}
+<br />

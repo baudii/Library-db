@@ -6,11 +6,8 @@ namespace Library_MVC.Controllers
 {
 	public class HomeController : Controller
 	{
-		private readonly ILogger<HomeController> _logger;
-
-		public HomeController(ILogger<HomeController> logger)
+		public HomeController()
 		{
-			_logger = logger;
 		}
 
 		public IActionResult Index()
@@ -18,7 +15,7 @@ namespace Library_MVC.Controllers
 			return View();
 		}
 
-		public IActionResult Privacy()
+		public IActionResult About()
 		{
 			return View();
 		}
@@ -30,8 +27,3 @@ namespace Library_MVC.Controllers
 		}
 	}
 }
-
-/*
- 
- 
- */
