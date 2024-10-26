@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Library_MVC.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Library_MVC.Controllers
 {
@@ -43,10 +44,11 @@ namespace Library_MVC.Controllers
 												|| u.PhoneNumber!.Contains(searchString));
 			}
 
-			var usersList = usersQuery.AsEnumerable();
 
-			// Получаем роли пользователей
+
+			var usersList = await _userManager.Users.ToListAsync();
 			var userRoles = new Dictionary<string, IList<string>>();
+
 			foreach (var user in usersList)
 			{
 				var roles = await _userManager.GetRolesAsync(user);

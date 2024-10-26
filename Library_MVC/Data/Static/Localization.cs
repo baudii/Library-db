@@ -86,8 +86,10 @@
 					return "Название";
 				case "Published Year":
 					return "Год публикации";
+				case "Genre":
+					return "Жанр";
 			}
-			throw new ArgumentException("Incorrect column name was provided");
+			return columnName;
 		}
 	}
 }

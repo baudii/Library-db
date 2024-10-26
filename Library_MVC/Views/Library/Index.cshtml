@@ -27,9 +27,10 @@
 		var columnWidths = new Dictionary<string, string>
 		{
 			{ "Id", "5%" },
-			{ "Author", "20%" },
-			{ "Title", "40%" },
-			{ "PublishedYear", "15%" }
+			{ "Title", "30%" },
+			{ "PublishedYear", "15%" },
+			{ "Genre", "15%" },
+			{ "Author", "20%" }
 		};
 	}
 	<thead>
@@ -38,6 +39,10 @@
 			var properties = typeof(BookModel).GetProperties();
 			foreach (var prop in properties)
 			{
+				if (prop.Name.Contains("authorid", StringComparison.OrdinalIgnoreCase))
+				{
+					continue;
+				}
 				var res = Regex.Replace(prop.Name, "(\\B[A-Z])", " $1");
 				res = Localization.GetRuBookColumnName(res);
 
@@ -77,9 +82,32 @@
 			<tr>
 				@foreach (var prop in properties)
 				{
-					<td>
-						@prop.GetValue(book)
-					</td>
+					if (prop.Name.Contains("authorid", StringComparison.OrdinalIgnoreCase))
+						continue;
+
+					if (prop.Name.Contains("author", StringComparison.OrdinalIgnoreCase))
+					{
+						var author = prop.GetValue(book) as AuthorModel;
+						if (author == null)
+						{
+							<td>
+								Неизвестно
+							</td>
+							return;
+						}
+
+						<td>
+							<a asp-action="Author" asp-route-id="@author!.Id">
+								@author!.FullName
+							</a>
+						</td>
+					}
+					else
+					{
+						<td>
+							@prop.GetValue(book)
+						</td>
+					}
 				}
 				<td asp-authorize asp-policy="@Policies.EditBook">
 					<a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-secondary">Edit</a>

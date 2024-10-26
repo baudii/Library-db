@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq.Expressions;
 using Library_MVC.Data.Static;
+using System.Linq;
 
 namespace Library_MVC.Controllers
 {
@@ -21,16 +22,17 @@ namespace Library_MVC.Controllers
 		{
 			ViewBag.CurrentSort = sortOrder;
 
-			var books = from b in _context.Books select b;
+			var books = from b in _context.Books.Include(b => b.Author) select b;
+
 			ViewData["CurrentFilter"] = searchString;
 
 			// Поиск (сначала фильтруем по значению строки поиска)
 			if (!string.IsNullOrEmpty(searchString))
 			{
 				books = books.Where(u => u.Id!.ToString().Contains(searchString)
-												|| u.Title!.Contains(searchString)
-												|| u.Author!.Contains(searchString)
-												|| u.PublishedYear!.ToString().Contains(searchString));
+												|| u.Title.Contains(searchString)
+												|| u.Author!.FullName.Contains(searchString)
+												|| u.PublishedYear.ToString().Contains(searchString));
 			}
 
 			// Применение сортировки (на те элементы, которые остались)

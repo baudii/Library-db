@@ -30,17 +30,20 @@ if (!string.IsNullOrEmpty(is_Docker_Env))
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
 builder.Services.AddDbContext<LibDBContext>(options =>
 {
-	options.UseNpgsql(builder.Configuration.GetConnectionString(libConnectionStringName),
-		npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null));
+	options.UseNpgsql(
+		builder.Configuration.GetConnectionString(libConnectionStringName)
+	);
 });
 
 
 builder.Services.AddDbContext<AuthDbContext>(options =>
 {
-	options.UseNpgsql(builder.Configuration.GetConnectionString(accountConnectionStringName),
-		npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null));
+	options.UseNpgsql(
+		builder.Configuration.GetConnectionString(accountConnectionStringName)
+	);
 });
 
 builder.Services.AddSingleton<IEmailSender, AuthEmailSender>();
@@ -61,15 +64,6 @@ builder.Services.AddIdentity<UserModel, IdentityRole>(options =>
 .AddDefaultUI();
 
 
-builder.Services.ConfigureApplicationCookie(options =>
-{
-	options.Cookie.Name = "LibraryCookie";
-	options.Cookie.SameSite = SameSiteMode.Strict;
-	options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-	options.LoginPath = "/Account/Login";
-	options.AccessDeniedPath = "/Account/AccessDenied";
-});
-
 builder.Services.AddAuthorization(options =>
 {
 	options.AddPolicy(Policies.CreateMod, policy => policy.RequireRole(AccountController.AdminRole));
@@ -88,20 +82,6 @@ builder.Services.AddAuthorization(options =>
 });
 
 var app = builder.Build();
-
-// Автоматическое применение миграций
-using (var scope = app.Services.CreateScope())
-{
-	var services = scope.ServiceProvider;
-
-	// Применяем миграции для LibraryDB
-	var libraryContext = services.GetRequiredService<LibDBContext>();
-	libraryContext.Database.Migrate();
-
-	// Применяем миграции для AccountDB
-	var accountContext = services.GetRequiredService<AuthDbContext>();
-	accountContext.Database.Migrate();
-}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -122,7 +102,18 @@ app.MapControllerRoute(
 
 using (var scope = app.Services.CreateScope())
 {
-	var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+	var services = scope.ServiceProvider;
+
+	// Применяем миграции для LibraryDB
+	var libraryContext = services.GetRequiredService<LibDBContext>();
+	libraryContext.Database.Migrate();
+
+	// Применяем миграции для AccountDB
+	var accountContext = services.GetRequiredService<AuthDbContext>();
+	accountContext.Database.Migrate();
+
+	// Создаем роли, если они не существуют
+	var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 	var roles = new[] { AccountController.AdminRole, AccountController.ModeratorRole, AccountController.MemberRole };
 
 	foreach (var role in roles)
@@ -132,35 +123,29 @@ using (var scope = app.Services.CreateScope())
 			await roleManager.CreateAsync(new IdentityRole(role));
 		}
 	}
-}
 
-// Тестируем роли:
-using (var scope = app.Services.CreateScope())
-{
-	var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserModel>>();
-
+	// Тестируем роли: создаем пользователя администратора
+	var userManager = services.GetRequiredService<UserManager<UserModel>>();
 	string adminUserName = "admin";
 	string adminEmail = "admin@admin.com";
-	var user = await userManager.FindByNameAsync(adminUserName);
 
-	if (user != null)
+	var user = await userManager.FindByNameAsync(adminUserName);
+	if (user == null)
 	{
-		await userManager.DeleteAsync(user);
+		user = new UserModel { UserName = adminUserName, Email = adminEmail, EmailConfirmed = true };
+		await userManager.CreateAsync(user, "Admin1@");
 	}
-	user = new UserModel();
-	user.UserName = adminUserName;
-	user.Email = adminEmail;
-	user.EmailConfirmed = true;
-	//Admin1@
-	//Moderator1@
-	await userManager.CreateAsync(user, "Admin1@");
-	var roles = await userManager.GetRolesAsync(user);
-	if (roles == null || roles.Count == 0 || roles.Count > 1 || roles[0] != AccountController.AdminRole)
+
+	var userRoles = await userManager.GetRolesAsync(user);
+	if (!userRoles.Contains(AccountController.AdminRole))
 	{
-		if (roles != null)
-			await userManager.RemoveFromRolesAsync(user, roles);
+		if (userRoles.Count > 0)
+		{
+			await userManager.RemoveFromRolesAsync(user, userRoles);
+		}
 		await userManager.AddToRoleAsync(user, AccountController.AdminRole);
 	}
 }
+
 
 app.Run();
