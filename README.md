@@ -1,12 +1,12 @@
-# Library Application
+# Music Archive Management Application
 
-This is a Library Management Application built with ASP.NET Core 8, Entity Framework, and PostgreSQL, fully containerized using Docker. The project follows the MVC (Model-View-Controller) design pattern and supports user authentication and book management through two separate databases: one for user authentication and one for managing the library’s books.
+This is a Music Archinve Management Application built with ASP.NET Core 8, Entity Framework, and PostgreSQL, fully containerized using Docker. The project follows the MVC (Model-View-Controller) design pattern and supports user authentication and song management through two separate databases: one for user authentication and one for managing archive's content.
 
 Upon first running the Docker setup, both databases are automatically created and configured, with initial data seeded from test SQL dump files. The application supports all four CRUD operations (Create, Read, Update, Delete), and includes built-in search functionality and sorting capabilities.
 
 Authentication and authorization are handled using the Microsoft Identity system, with role-based access control managed through authorization policies. 
 
-Library database is handled using C# reflection, so with a few tweeks can be switched.
+The Music Archive database is handled using C# reflection, so with a few tweeks can be switched.
 
 The frontend is developed using Razor and styled with Bootstrap, offering a clean and responsive user interface.
 
@@ -24,13 +24,13 @@ To get started with this application, follow these steps:
 Clone this repository to your local machine. Example using Git:
 
 ```bash
-git clone https://github.com/baudii/Library-db.git
+git clone https://github.com/baudii/music-db.git
 ```
 
 Navigate to the project directory:
 
 ```bash
-cd @path@/Library-db
+cd @path@/music-db
 ```
 
 ### 2. Run the application
@@ -57,7 +57,7 @@ http://localhost:5000
 ### Database Information
 
 - The application uses two databases:
-  - `librarydb`: Stores information related to the books.
+  - `Songsdump`: Stores information related to the song.
   - `authenticatedb`: Manages user authentication.
   
 Both databases are automatically set up by Docker using the provided SQL dump files located in the `dumps/` folder.
@@ -69,10 +69,10 @@ The necessary environment variables for the database connections are already con
 
 ### Usage
 
-Once the application is up and running, you can manage books, users, and other functionalities related to the library. The authentication system is integrated to allow user roles and permissions.
+Once the application is up and running, you can manage songs, users, and other functionalities related to the archive. The authentication system is integrated to allow user roles and permissions.
 
-- Users with the Member role can only view the database.
-- Users with the Moderator role can edit the database.
+- Users with the Member role can only view the archive.
+- Users with the Moderator role can edit the archive.
 - Users with the Admin role have full control, including a separate admin interface for managing user accounts. Admins can create, delete, and edit any account, assign roles, and manage permissions.
 
 To log in as an admin use:
