@@ -1,28 +1,28 @@
 ﻿services:
-  library_mvc:
-    container_name: library_mvc
+  musiclib-db:
+    container_name: musiclib-db
     build:
       context: .
-      dockerfile: Library_MVC/Dockerfile
+      dockerfile: MusicLibDb/Dockerfile
     ports:
       - "5000:5000"
     depends_on:
       authenticatedb:
         condition: service_healthy
-      librarydb:
+      SongsDb:
         condition: service_healthy
     environment:
       - IS_DOCKER=TRUE;
     
-  librarydb:
+  SongsDb:
     image: postgres:17.0
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: librarydb
+      POSTGRES_DB: SongsDb
     volumes:
-      - ./data/librarydb:/var/lib/postgresql/data  # Монтируем директорию с данными
-      - ./dumps/librarydb.sql:/docker-entrypoint-initdb.d/librarydb.sql  # Монтируем SQL дамп
+      - ./data/SongsDb:/var/lib/postgresql/data  # Монтируем директорию с данными
+      - ./dumps/SongsDb.sql:/docker-entrypoint-initdb.d/SongsDb.sql  # Монтируем SQL дамп
     ports:
       - "5434:5432"
     healthcheck:

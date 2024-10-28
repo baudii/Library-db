@@ -1,6 +1,6 @@
 ﻿services:
-  library_mvc:
-    container_name: library_mvc
+  musiclib-db:
+    container_name: musiclib-db
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=5000

@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Получаем строки подключения из переменных окружения
 var is_Docker_Env = Environment.GetEnvironmentVariable("IS_DOCKER");
-string libConnectionStringName = "LibraryDB";
+string connectionString = "SongsDb";
 string accountConnectionStringName = "AccountDB";
 
 if (!string.IsNullOrEmpty(is_Docker_Env))
@@ -23,7 +23,7 @@ if (!string.IsNullOrEmpty(is_Docker_Env))
 	{
 		serverOptions.ListenAnyIP(5000);  // HTTP порт
 	});
-	libConnectionStringName += "_Docker";
+	connectionString += "_Docker";
 	accountConnectionStringName += "_Docker";
 }
 
@@ -34,7 +34,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<MusicLibDBContext>(options =>
 {
 	options.UseNpgsql(
-		builder.Configuration.GetConnectionString(libConnectionStringName)
+		builder.Configuration.GetConnectionString(connectionString)
 	);
 });
 
@@ -104,9 +104,9 @@ using (var scope = app.Services.CreateScope())
 {
 	var services = scope.ServiceProvider;
 
-	// Применяем миграции для LibraryDB
-	var libraryContext = services.GetRequiredService<MusicLibDBContext>();
-	libraryContext.Database.Migrate();
+	// Применяем миграции для SongsDb
+	var musicLibContext = services.GetRequiredService<MusicLibDBContext>();
+	musicLibContext.Database.Migrate();
 
 	// Применяем миграции для AccountDB
 	var accountContext = services.GetRequiredService<AuthDbContext>();
