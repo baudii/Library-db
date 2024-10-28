@@ -9,11 +9,11 @@ using System.Linq;
 
 namespace Library_MVC.Controllers
 {
-	public class LibraryController : Controller
+	public class MusicLibController : Controller
 	{
-		private readonly LibDBContext _context;
+		private readonly MusicLibDBContext _context;
 
-		public LibraryController(LibDBContext context)
+		public MusicLibController(MusicLibDBContext context)
 		{
 			_context = context;
 		}
@@ -22,16 +22,16 @@ namespace Library_MVC.Controllers
 		{
 			ViewBag.CurrentSort = sortOrder;
 
-			var books = from b in _context.Books.Include(b => b.Author) select b;
+			var songs = _context.Songs.AsQueryable();
 
 			ViewData["CurrentFilter"] = searchString;
 
 			// Поиск (сначала фильтруем по значению строки поиска)
 			if (!string.IsNullOrEmpty(searchString))
 			{
-				books = books.Where(u => u.Id!.ToString().Contains(searchString)
+				songs = songs.Where(u => u.Id!.ToString().Contains(searchString)
 												|| u.Title.Contains(searchString)
-												|| u.Author!.FullName.Contains(searchString)
+												|| u.Author!.Contains(searchString)
 												|| u.PublishedYear.ToString().Contains(searchString));
 			}
 
@@ -42,26 +42,26 @@ namespace Library_MVC.Controllers
 				string sortProperty = sortParams[0];
 				string sortDirection = sortParams[1];
 
-				var param = Expression.Parameter(typeof(BookModel), "b");
+				var param = Expression.Parameter(typeof(SongModel), "b");
 				var property = Expression.Property(param, sortProperty);
 				var sortExpression = Expression.Lambda(property, param);
 
 				string methodName = sortDirection == "asc" ? "OrderBy" : "OrderByDescending";
-				var resultExpression = Expression.Call(typeof(Queryable), methodName, new Type[] { typeof(BookModel), property.Type },
-					books.Expression, Expression.Quote(sortExpression));
+				var resultExpression = Expression.Call(typeof(Queryable), methodName, new Type[] { typeof(SongModel), property.Type },
+					songs.Expression, Expression.Quote(sortExpression));
 
-				books = books.Provider.CreateQuery<BookModel>(resultExpression);
+				songs = songs.Provider.CreateQuery<SongModel>(resultExpression);
 			}
 			else
 			{
-				books = books.OrderBy(b => b.Id);
+				songs = songs.OrderBy(b => b.Id);
 			}
 
 			// Пагинация
-			var totalItems = await books.CountAsync();
+			var totalItems = await songs.CountAsync();
 			var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
-			var booksOnPage = await books
+			var songsOnPage = await songs
 				.Skip((pageNumber - 1) * pageSize)
 				.Take(pageSize)
 				.ToListAsync();
@@ -69,7 +69,7 @@ namespace Library_MVC.Controllers
 			ViewBag.CurrentPage = pageNumber;
 			ViewBag.TotalPages = totalPages;
 
-			return View(booksOnPage);
+			return View(songsOnPage);
 		}
 
 		[Authorize(Policy = Policies.CreateBook)]
@@ -81,62 +81,63 @@ namespace Library_MVC.Controllers
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		[Authorize(Policy = Policies.CreateBook)]
-		public async Task<IActionResult> Create(BookModel book)
+		public async Task<IActionResult> Create(SongModel song)
 		{
 			if (ModelState.IsValid)
 			{
-				_context.Books.Add(book);
+				_context.Songs.Add(song);
 				await _context.SaveChangesAsync();
 				return RedirectToAction(nameof(Index));
 			}
-			return View(book);
+			return View(song);
 		}
 
 		[Authorize(Policy = Policies.EditBook)]
 		public async Task<IActionResult> Edit(int id)
 		{
-			var book = await _context.Books.FindAsync(id);
-			if (book == null)
+			var song = await _context.Songs.FindAsync(id);
+			if (song == null)
 			{
 				return NotFound();
 			}
-			return View(book);
+			return View(song);
 		}
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		[Authorize(Policy = Policies.EditBook)]
-		public async Task<IActionResult> Edit(int id, BookModel book)
+		public async Task<IActionResult> Edit(int id, SongModel song)
 		{
-			if (id != book.Id)
+			if (id != song.Id)
 				return NotFound();
 
 			if (ModelState.IsValid)
 			{
 				try
 				{
-					_context.Update(book);
+					_context.Update(song);
 					await _context.SaveChangesAsync();
 				}
 				catch (DbUpdateConcurrencyException)
 				{
-					if (!BookExists(book.Id))
+					bool songExist = _context.Songs.Any(e => e.Id == id);
+					if (!songExist)
 						return NotFound();
 					throw;
 				}
 				return RedirectToAction(nameof(Index));
 			}
-			return View(book);
+			return View(song);
 		}
 
 		[Authorize(Policy = Policies.DeleteBook)]
 		public async Task<IActionResult> Delete(int id)
 		{
-			var book = await _context.Books.FirstOrDefaultAsync(m => m.Id == id);
-			if (book == null)
+			var song = await _context.Songs.FirstOrDefaultAsync(m => m.Id == id);
+			if (song == null)
 				return NotFound();
 
-			return View(book);
+			return View(song);
 		}
 
 		[Authorize(Policy = Policies.DeleteBook)]
@@ -144,18 +145,19 @@ namespace Library_MVC.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteConfirmed(int id)
 		{
-			var book = await _context.Books.FindAsync(id);
-			if (book != null)
+			var song = await _context.Songs.FindAsync(id);
+			if (song != null)
 			{
-				_context.Books.Remove(book);
+				_context.Songs.Remove(song);
 				await _context.SaveChangesAsync();
 			}
 			return RedirectToAction(nameof(Index));
 		}
 
-		private bool BookExists(int id)
+		public async Task<IActionResult> Listen(int id)
 		{
-			return _context.Books.Any(e => e.Id == id);
+			var song = await _context.Songs.FindAsync(id);
+			return View(song);
 		}
 	}
 }

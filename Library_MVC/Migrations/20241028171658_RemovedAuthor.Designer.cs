@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Library_MVC.Migrations
 {
     [DbContext(typeof(MusicLibDBContext))]
-    [Migration("20241012212433_LibraryDB")]
-    partial class LibraryDB
+    [Migration("20241028171658_RemovedAuthor")]
+    partial class RemovedAuthor
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,7 +24,7 @@ namespace Library_MVC.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Library_MVC.Models.Book", b =>
+            modelBuilder.Entity("Library_MVC.Models.SongModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,17 +33,23 @@ namespace Library_MVC.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Author")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Genre")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("PublishedYear")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Books");
+                    b.ToTable("Songs");
                 });
 #pragma warning restore 612, 618
         }

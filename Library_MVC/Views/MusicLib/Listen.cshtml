@@ -1,0 +1,26 @@
+﻿@model Library_MVC.Models.SongModel
+
+@{
+	ViewData["Title"] = "Слушать песню";
+}
+
+<div class="container mt-5">
+	<div class="row">
+		<div class="col-md-8 offset-md-2 text-center">
+			<h1 class="mb-4">Слушать песню</h1>
+			<h2 class="mb-4">Когда-нибудь может реализую</h2>
+			<div class="card">
+				<div class="card-header bg-primary text-white">
+					<h2>Песня: @Model.Title</h2>
+				</div>
+				<div class="card-body">
+					<h5 class="card-title">Информация о песне</h5>
+					<p><strong>Название:</strong> @Model.Title</p>
+					<p><strong>Год выпуска:</strong> @Model.PublishedYear</p>
+					<p><strong>Жанр:</strong> @Model.Genre</p>
+					<p><strong>Автор:</strong> @Model.Author</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

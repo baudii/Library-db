@@ -1,15 +1,14 @@
-﻿@model Library_MVC.Models.BookModel
+﻿@model Library_MVC.Models.SongModel
 
 @{
-	ViewData["Title"] = "Create Book";
+	ViewData["Title"] = "Редактировать песню";
 }
 
-<h1>Create Book</h1>
-
-<h4>Book</h4>
+<h1>Редактировать песню</h1>
 <hr />
 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-<form asp-action="Create">
+<form asp-action="Edit" method="post">
+	<input type="hidden" asp-for="Id" />
 	<div class="form-group">
 		<label asp-for="Author" class="control-label"></label>
 		<input asp-for="Author" class="form-control" />
@@ -27,13 +26,10 @@
 	</div>
 	<br />
 	<div class="form-group">
-		<input type="submit" value="Create" class="btn btn-primary" />
+		<input type="submit" value="Сохранить" class="btn btn-primary" />
+		<a asp-action="Index" class="btn btn-secondary">Отмена</a>
 	</div>
 </form>
-
-<div>
-	<a asp-action="Index">Back to List</a>
-</div>
 
 @section Scripts {
 	@{

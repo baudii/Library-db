@@ -4,9 +4,9 @@
 @using System.Linq;
 @using Library_MVC.Data.Static;
 
-@model List<BookModel>
+@model List<SongModel>
 @{
-	ViewData["Title"] = "Коллекция книг";
+	ViewData["Title"] = "Коллекция песен";
 }
 <h1>@ViewData["Title"]</h1>
 
@@ -36,7 +36,7 @@
 	<thead>
 		<tr>
 		@{
-			var properties = typeof(BookModel).GetProperties();
+			var properties = typeof(SongModel).GetProperties();
 			foreach (var prop in properties)
 			{
 				if (prop.Name.Contains("authorid", StringComparison.OrdinalIgnoreCase))
@@ -82,33 +82,13 @@
 			<tr>
 				@foreach (var prop in properties)
 				{
-					if (prop.Name.Contains("authorid", StringComparison.OrdinalIgnoreCase))
-						continue;
-
-					if (prop.Name.Contains("author", StringComparison.OrdinalIgnoreCase))
-					{
-						var author = prop.GetValue(book) as AuthorModel;
-						if (author == null)
-						{
-							<td>
-								Неизвестно
-							</td>
-							return;
-						}
-
-						<td>
-							<a asp-action="Author" asp-route-id="@author!.Id">
-								@author!.FullName
-							</a>
-						</td>
-					}
-					else
-					{
-						<td>
-							@prop.GetValue(book)
-						</td>
-					}
+					<td>
+						@prop.GetValue(book)
+					</td>
 				}
+				<td>
+					<a asp-action="Listen" asp-route-id="@book.Id">Слушать!</a>
+				</td>
 				<td asp-authorize asp-policy="@Policies.EditBook">
 					<a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-secondary">Edit</a>
 					<a asp-authorize asp-policy="@Policies.DeleteBook" asp-action="Delete" asp-route-id="@book.Id" class="btn btn-danger">Delete</a>
@@ -177,7 +157,7 @@
 	}
 }
 </ul>
-<a asp-authorize asp-policy="@Policies.CreateBook" asp-action="Create" class="btn btn-primary">Add New Book</a>
+<a asp-authorize asp-policy="@Policies.CreateBook" asp-action="Create" class="btn btn-primary">Add New Song</a>
 
 
 @if (!User.Identity!.IsAuthenticated)

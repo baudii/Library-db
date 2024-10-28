@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Library_MVC.Migrations
 {
     [DbContext(typeof(MusicLibDBContext))]
-    [Migration("20241024084308_LibDB_2")]
-    partial class LibDB_2
+    [Migration("20241028164937_ChangedToMusic")]
+    partial class ChangedToMusic
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,7 +45,7 @@ namespace Library_MVC.Migrations
                     b.ToTable("Authors");
                 });
 
-            modelBuilder.Entity("Library_MVC.Models.BookModel", b =>
+            modelBuilder.Entity("Library_MVC.Models.SongModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -71,10 +71,10 @@ namespace Library_MVC.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Books");
+                    b.ToTable("Songs");
                 });
 
-            modelBuilder.Entity("Library_MVC.Models.BookModel", b =>
+            modelBuilder.Entity("Library_MVC.Models.SongModel", b =>
                 {
                     b.HasOne("Library_MVC.Models.AuthorModel", "Author")
                         .WithMany("Books")

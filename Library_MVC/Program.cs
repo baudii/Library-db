@@ -31,7 +31,7 @@ if (!string.IsNullOrEmpty(is_Docker_Env))
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<LibDBContext>(options =>
+builder.Services.AddDbContext<MusicLibDBContext>(options =>
 {
 	options.UseNpgsql(
 		builder.Configuration.GetConnectionString(libConnectionStringName)
@@ -105,7 +105,7 @@ using (var scope = app.Services.CreateScope())
 	var services = scope.ServiceProvider;
 
 	// Применяем миграции для LibraryDB
-	var libraryContext = services.GetRequiredService<LibDBContext>();
+	var libraryContext = services.GetRequiredService<MusicLibDBContext>();
 	libraryContext.Database.Migrate();
 
 	// Применяем миграции для AccountDB

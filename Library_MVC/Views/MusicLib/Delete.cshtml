@@ -1,12 +1,12 @@
-﻿@model Library_MVC.Models.BookModel
+﻿@model Library_MVC.Models.SongModel
 
 @{
-	ViewData["Title"] = "Delete Book";
+	ViewData["Title"] = "Удалить песню";
 }
 
 <h1>Удалить книгу</h1>
 
-<h4>Вы уверены, что хотите удалить данную книгу?</h4>
+<h4>Вы уверены, что хотите удалить данную песню?</h4>
 <hr />
 <div>
 	<h4><strong>Название:</strong> @Model.Title</h4>
@@ -16,10 +16,10 @@
 	</div>
 </div>
 
-<form asp-action="DeleteConfirmed" method="post">
+<form asp-action="Delete" method="post">
 	<input type="hidden" asp-for="Id" />
 	<div class="form-group">
-		<input type="submit" value="Удалить" class="btn btn-danger" />
+		<input type="submit" value="Delete" class="btn btn-danger" />
 		<a asp-action="Index" class="btn btn-secondary">Отмена</a>
 	</div>
 </form>

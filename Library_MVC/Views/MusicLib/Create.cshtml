@@ -1,14 +1,15 @@
-﻿@model Library_MVC.Models.BookModel
+﻿@model Library_MVC.Models.SongModel
 
 @{
-	ViewData["Title"] = "Edit Book";
+	ViewData["Title"] = "Создать песню";
 }
 
-<h1>Редактировать книгу</h1>
+<h1>Создать песню</h1>
+
+<h4>Песня</h4>
 <hr />
 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-<form asp-action="Edit" method="post">
-	<input type="hidden" asp-for="Id" />
+<form asp-action="Create">
 	<div class="form-group">
 		<label asp-for="Author" class="control-label"></label>
 		<input asp-for="Author" class="form-control" />
@@ -20,16 +21,24 @@
 		<span asp-validation-for="Title" class="text-danger"></span>
 	</div>
 	<div class="form-group">
+		<label asp-for="Genre" class="control-label"></label>
+		<input asp-for="Genre" class="form-control" />
+		<span asp-validation-for="Genre" class="text-danger"></span>
+	</div>
+	<div class="form-group">
 		<label asp-for="PublishedYear" class="control-label"></label>
 		<input asp-for="PublishedYear" class="form-control" />
 		<span asp-validation-for="PublishedYear" class="text-danger"></span>
 	</div>
 	<br />
 	<div class="form-group">
-		<input type="submit" value="Сохранить" class="btn btn-primary" />
-		<a asp-action="Index" class="btn btn-secondary">Отмена</a>
+		<input type="submit" value="Create" class="btn btn-primary" />
 	</div>
 </form>
+
+<div>
+	<a asp-action="Index">Назад к списку</a>
+</div>
 
 @section Scripts {
 	@{
