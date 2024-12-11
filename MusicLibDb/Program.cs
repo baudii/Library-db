@@ -28,7 +28,6 @@ if (!string.IsNullOrEmpty(is_Docker_Env))
 }
 
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<MusicLibDBContext>(options =>
