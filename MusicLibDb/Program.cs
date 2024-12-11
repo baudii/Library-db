@@ -10,18 +10,15 @@ using Library_MVC.Data.Static;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Получаем строки подключения из переменных окружения
 var is_Docker_Env = Environment.GetEnvironmentVariable("IS_DOCKER");
 string connectionString = "SongsDb";
 string accountConnectionStringName = "AccountDB";
 
 if (!string.IsNullOrEmpty(is_Docker_Env))
 {
-	// Мы внутри Docker
-	// Отключаем использование HTTPS
 	builder.WebHost.ConfigureKestrel(serverOptions =>
 	{
-		serverOptions.ListenAnyIP(5000);  // HTTP порт
+		serverOptions.ListenAnyIP(5000);
 	});
 	connectionString += "_Docker";
 	accountConnectionStringName += "_Docker";
@@ -103,15 +100,12 @@ using (var scope = app.Services.CreateScope())
 {
 	var services = scope.ServiceProvider;
 
-	// Применяем миграции для SongsDb
 	var musicLibContext = services.GetRequiredService<MusicLibDBContext>();
 	musicLibContext.Database.Migrate();
 
-	// Применяем миграции для AccountDB
 	var accountContext = services.GetRequiredService<AuthDbContext>();
 	accountContext.Database.Migrate();
 
-	// Создаем роли, если они не существуют
 	var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 	var roles = new[] { AccountController.AdminRole, AccountController.ModeratorRole, AccountController.MemberRole };
 
@@ -123,7 +117,6 @@ using (var scope = app.Services.CreateScope())
 		}
 	}
 
-	// Тестируем роли: создаем пользователя администратора
 	var userManager = services.GetRequiredService<UserManager<UserModel>>();
 	string adminUserName = "admin";
 	string adminEmail = "admin@admin.com";
